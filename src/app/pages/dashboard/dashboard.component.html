@@ -1,0 +1,20 @@
+<nav>
+    <div class="izq">
+    <h1>CryptoXchange</h1>
+    </div>
+    <div class="der">
+    <a [routerLink]="['conversion']" routerLinkActive="router-link-active">Convertir</a>
+    <!--<a [routerLink]="['/menu']" routerLinkActive="router-link-active">Billetera</a>-->
+    <a [routerLink]="['historial']" routerLinkActive="router-link-active">Movimientos</a>
+    <a [routerLink]="['suscripciones']" routerLinkActive="outer-link-active">Suscripciones</a>
+    <div class="usuario" (click)="toggleMenu()">
+        <a class="boton">Usuario</a>
+        @if(menu){
+            <div class="menu">
+                <button (click)="cerrarSesion()">Cerrar sesión</button>
+            </div>
+        }
+    </div>
+</div>
+</nav>
+<router-outlet></router-outlet>

@@ -1,0 +1,70 @@
+<main>
+  <h1>Conversión de Criptomonedas</h1>
+
+  <div class="container">
+    <!-- Formulario de conversión -->
+    <form (ngSubmit)="performConversion($event)" id="trading-form">
+      <!-- Selección de moneda origen -->
+      <label for="from-currency">Moneda origen:</label>
+      <select
+        id="from-currency"
+        name="from-currency"
+        [(ngModel)]="conversionRequest.FromCurrency"
+        required
+      >
+        <option value="BTC">Bitcoin (BTC)</option>
+        <option value="ETH">Ethereum (ETH)</option>
+        <option value="USDT">Tether (USDT)</option>
+        <option value="ARS">Pesos Argentinos (ARS)</option>
+        <!-- Agrega más monedas según sea necesario -->
+      </select>
+
+      <!-- Selección de moneda destino -->
+      <label for="to-currency">Moneda destino:</label>
+      <select
+        id="to-currency"
+        name="to-currency"
+        [(ngModel)]="conversionRequest.ToCurrency"
+        required
+      >
+        <option value="BTC">Bitcoin (BTC)</option>
+        <option value="ETH">Ethereum (ETH)</option>
+        <option value="USDT">Tether (USDT)</option>
+        <option value="ARS">Pesos Argentinos (ARS)</option>
+        <!-- Agrega m��s monedas según sea necesario -->
+      </select>
+
+      <!-- Cantidad a convertir -->
+      <label for="amount">Cantidad:</label>
+      <input
+        id="amount"
+        name="amount"
+        type="number"
+        [(ngModel)]="conversionRequest.Amount"
+        required
+      />
+
+      <!-- Botón para realizar la conversión -->
+      <button type="submit">Convertir</button>
+    </form>
+
+    <!-- Sección para mostrar resultados -->
+    <div class="result" *ngIf="conversionResult">
+      <h2>Resultado de la Conversión</h2>
+      <div class="data">
+      <p><strong>De:</strong> {{ conversionResult.fromCurrency }}</p>
+      <p><strong>A:</strong> {{ conversionResult.toCurrency }}</p>
+      </div><div class="data">
+      <p><strong>Cantidad Original:</strong> {{ conversionResult.moneda?.simbolo }}{{ conversionResult.amount }}</p>
+      <p><strong>Resultado:</strong> {{ conversionResult.moneda?.simbolo }}{{ conversionResult.result }}</p>
+    </div><div class="data">
+      <p><strong>Fecha:</strong> {{ conversionResult.date | date: 'dd/MM/yyyy' }}</p>
+    </div>
+    </div>
+
+    <!-- Mensaje de error -->
+    <div *ngIf="errorMessage" class="error">
+      {{ errorMessage }}
+    </div>
+  </div>
+</main>

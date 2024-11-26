@@ -1,0 +1,14 @@
+<main>
+    <form #registerForm="ngForm" (ngSubmit)="register(registerForm)">
+        <h1>CryptoXchange</h1>
+        <h2>Regístrate :)</h2>
+        <input type="text" id="username" placeholder="Usuario" name="username" ngModel required>
+        <input type="text" id="name" placeholder="Nombre" name="nombre" ngModel required>
+        <input type="text" id="lastname" placeholder="Apellido" name="apellido" ngModel required>
+        <input type="password" id="password" placeholder="Contraseña" name="password" ngModel required>
+        <button [disabled]="registerForm.invalid" class="boton-resaltado" type="submit">Registrarse</button>
+    </form>
+    @if(errorRegister) {
+        <h3 id="error">Error de register</h3>
+    }
+</main>

@@ -1,0 +1,25 @@
+<main>
+    <h1>Movimientos</h1>
+    <table>
+        <thead>
+            <td>Moneda origen</td>
+            <td>Moneda destino</td>
+            <td>Cantidad original</td>
+            <td>Resultado</td>
+            <td>Fecha</td>
+        </thead>
+        <tbody>
+            <tr *ngFor="let conversion of historial">
+                <td>{{ conversion.fechaConversion | date:'dd/MM/yyyy' }}</td>
+                <td>{{ conversion.FromCurrency }}</td>
+                <td>{{ conversion.ToCurrency }}</td>
+                <td>{{ conversion.Amount }}</td>
+                <td>{{ conversion.Result }}</td>
+                <td>{{ conversion.moneda?.simbolo }}</td>
+              </tr>
+              <tr *ngIf="historial.length === 0">
+                <td colspan="6" class="vacio">No hay movimientos recientes.</td>
+              </tr>
+        </tbody>
+    </table>
+</main>

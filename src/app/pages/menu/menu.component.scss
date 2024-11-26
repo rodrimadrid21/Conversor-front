@@ -1,0 +1,118 @@
+
+  main {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: #0c0e14;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 90vh;
+    padding: 2rem;
+  }
+  
+  h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-align:start;
+    color: #f0b90b;
+    margin-bottom: 2rem;
+    margin-top: 2.5rem;
+  }
+  #ghost {
+    margin-bottom: 0rem;
+    margin-top: 4rem;
+  }
+  table {
+    width: 100%;
+    max-width: 60rem;
+    display: flex;
+    flex-direction: column;
+    background-color: #1e2026;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+  }
+  
+  thead {
+    background-color: #2b2f36;
+    display: flex;
+    justify-content: space-around;
+  }
+  
+  thead td {
+    font-weight: bold;
+    color: #f0b90b;
+  }
+  
+  td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #2b2f36;
+  }
+
+  tbody tr {
+    display: flex;
+    justify-content: center;
+  }
+  
+  tbody tr:last-child td {
+    border-bottom: none;
+    height: 20rem;
+  }
+  .trade {
+    text-align: center;
+  }
+  
+  button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .modif {
+    background-color: #f0b90b;
+    color: #0c0e14;
+  }
+  
+  .modif:hover {
+    background-color: #f8d12f;
+  }
+  
+  .vacio {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #848e9c;
+  }
+  
+  .mas1 {
+    background-color: #2b2f36;
+    color: #f0b90b;
+    font-size: 1.2rem;
+    margin-left: 1rem;
+  }
+  
+  .mas1:hover {
+    background-color: #3a3f4c;
+  }
+  a {
+    color: #0c0e14;
+  }
+  .botonaccmas {
+    background-color: #f0b90b;
+    color: #0c0e14;
+    margin-top: 1rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .botonaccmas:hover {
+    background-color: #f8d12f;
+  }
