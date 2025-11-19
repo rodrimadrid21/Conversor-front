@@ -88,7 +88,7 @@ export class DataAuthService {
     return this.usuario;
   }
 
-  getToken(): string | null {
+  getToken(){
     return localStorage.getItem("jwtToken");
   }
 
