@@ -1,3 +1,5 @@
+// src/app/pages/historial/historial.component.ts
+
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataConversionService } from '../../services/data-conversion.service';
@@ -11,42 +13,35 @@ import { Conversion } from '../../interfaces/conversion';
   styleUrls: ['./historial.component.scss']
 })
 export class HistorialComponent implements OnInit {
+
   historial: Conversion[] = [];
-  dataConversionService = inject(DataConversionService);
+  private dataConversionService = inject(DataConversionService);
 
   ngOnInit(): void {
     this.obtenerHistorial();
   }
 
-  async obtenerHistorial(): Promise<void> {
-    const userId = this.getUserId();
-    try {
-      this.historial = await this.dataConversionService.getUltimasConversiones(userId);
-      console.log('Historial obtenido:', this.historial); // Verificar en consola
-    } catch (error) {
-      console.error('Error al obtener el historial:', error);
-    }
-  }
+  
 
-  // Obtener el ID del usuario desde el localStorage (suponiendo que esté guardado allí)
-  private getUserId(): number {
-    const token = localStorage.getItem('jwtToken');
-    if (token) {
-      try {
-        const decodedToken = JSON.parse(atob(token.split('.')[1])); // Decodifica el token JWT
-        if (decodedToken.sub) {
-          return decodedToken.sub; // Aquí usamos el "sub" como UsuarioId
-        } else {
-          console.error('El token no contiene el campo "sub"');
-          return 0;
-        }
-      } catch (error) {
-        console.error('Error al decodificar el token:', error);
-        return 0;
-      }
-    } else {
-      console.error('No se encontró el token en localStorage');
-      return 0;
-    }
+  async obtenerHistorial(): Promise<void> {
+    try {
+
+    // Traemos el historial
+    this.historial = await this.dataConversionService.getUltimasConversiones();
+
+    // 🔥 ORDENAR POR FECHA (más reciente → más viejo)
+    this.historial = this.historial.sort((a, b) => {
+  const timeA = a.date ? new Date(a.date).getTime() : 0;
+  const timeB = b.date ? new Date(b.date).getTime() : 0;
+  return timeB - timeA;   // más reciente primero
+});
+
+
+    console.log('Historial obtenido:', this.historial);
+    console.table(this.historial);
+
+  } catch (error) {
+    console.error('Error al obtener el historial:', error);
+  }
   }
 }

@@ -9,7 +9,7 @@
       <select
         id="from-currency"
         name="from-currency"
-        [(ngModel)]="conversionRequest.FromCurrency"
+        [(ngModel)]="conversionRequest.fromCurrency"
         required
       >
         <option value="BTC">Bitcoin (BTC)</option>
@@ -24,14 +24,14 @@
       <select
         id="to-currency"
         name="to-currency"
-        [(ngModel)]="conversionRequest.ToCurrency"
+        [(ngModel)]="conversionRequest.toCurrency"
         required
       >
         <option value="BTC">Bitcoin (BTC)</option>
         <option value="ETH">Ethereum (ETH)</option>
         <option value="USDT">Tether (USDT)</option>
         <option value="ARS">Pesos Argentinos (ARS)</option>
-        <!-- Agrega m��s monedas según sea necesario -->
+        <!-- Agrega más monedas según sea necesario -->
       </select>
 
       <!-- Cantidad a convertir -->
@@ -40,7 +40,7 @@
         id="amount"
         name="amount"
         type="number"
-        [(ngModel)]="conversionRequest.Amount"
+        [(ngModel)]="conversionRequest.amount"
         required
       />
 
@@ -51,20 +51,39 @@
     <!-- Sección para mostrar resultados -->
     <div class="result" *ngIf="conversionResult">
       <h2>Resultado de la Conversión</h2>
+
       <div class="data">
-      <p><strong>De:</strong> {{ conversionResult.fromCurrency }}</p>
-      <p><strong>A:</strong> {{ conversionResult.toCurrency }}</p>
-      </div><div class="data">
-      <p><strong>Cantidad Original:</strong> {{ conversionResult.moneda?.simbolo }}{{ conversionResult.amount }}</p>
-      <p><strong>Resultado:</strong> {{ conversionResult.moneda?.simbolo }}{{ conversionResult.result }}</p>
-    </div><div class="data">
-      <p><strong>Fecha:</strong> {{ conversionResult.date | date: 'dd/MM/yyyy' }}</p>
-    </div>
+        <p><strong>De:</strong> {{ conversionResult.fromCurrency }}</p>
+        <p><strong>A:</strong> {{ conversionResult.toCurrency }}</p>
+      </div>
+
+      <div class="data">
+        <p>
+          <strong>Cantidad Original:</strong>
+          {{ conversionResult.fromCurrencySymbol }}
+          {{ conversionResult.amount }}
+        </p>
+        <p>
+          <strong>Resultado:</strong>
+          {{ conversionResult.toCurrencySymbol }}
+          {{ conversionResult.result }}
+        </p>
+      </div>
+
+      <div class="data">
+        <p>
+          <strong>Fecha:</strong>
+          {{ conversionResult.date | date: 'dd/MM/yyyy' }}
+        </p>
+      </div>
     </div>
 
     <!-- Mensaje de error -->
-    <div *ngIf="errorMessage" class="error">
-      {{ errorMessage }}
-    </div>
+    <div *ngIf="errorMessage" class="alert alert-error">
+  <div class="alert-text">{{ errorMessage }}</div>
+  <a [routerLink]="['/suscripciones']" routerLinkActive="router-link-active" class="alert-action">Ver planes</a>
+</div>
+
+    
   </div>
 </main>

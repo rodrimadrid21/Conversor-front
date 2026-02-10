@@ -14,6 +14,7 @@ export class DataAuthService {
 
   constructor() {
     const token = this.getToken();
+    const storedPlan = localStorage.getItem('subscriptionType') as 'Free' | 'Trial' | 'Pro' | null;
 
     if (token) {
       this.usuario = this.usuario || { 
@@ -22,7 +23,9 @@ export class DataAuthService {
         LastName: '',
         UserName: '',
         token, 
-        isAdmin: false 
+        isAdmin: false,
+        subscriptionType: storedPlan || 'Free' // 🔹 por defecto Free
+ 
       };
     } else {
       this.clearToken();
@@ -52,6 +55,10 @@ export class DataAuthService {
 
     localStorage.setItem('jwtToken', resJson.token); // Guarda el token
     console.log('Token guardado:', localStorage.getItem('jwtToken'));
+    // 🔹 al loguear, si no sabemos el plan aún, asumimos Free
+      if (!localStorage.getItem('subscriptionType')) {
+        localStorage.setItem('subscriptionType', 'Free');
+      }
     return resJson;
   } catch (error) {
     console.error("Error en el servicio de login:", error);
@@ -97,4 +104,99 @@ export class DataAuthService {
     this.usuario = undefined;
   }
 
+  // 🔹 NUEVO: activar plan Free/Trial/Pro
+  // =====================================
+  // plan puede ser 'Free' | 'Trial' | 'Pro'
+  async activarPlan(plan: 'Free' | 'Trial' | 'Pro'): Promise<string> {
+    const token = this.getToken();
+    if (!token) {
+      throw new Error('Token no disponible. Iniciá sesión nuevamente.');
+    }
+
+    // Mapeo a tu enum del backend:
+    // 0 = Free, 1 = Trial, 2 = Pro
+    const typeValue =
+      plan === 'Free'  ? 0 :
+      plan === 'Trial' ? 1 :
+      2; // Pro
+
+    const body = {
+      id: 0,
+      type: typeValue,
+      conversionLimit: 0,
+      monthlyReset: true
+    };
+
+    const res = await fetch(`${environment.API_URL}Usuario/activar-plan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      let serverMessage = '';
+      try {
+        const json = await res.json();
+        serverMessage = json?.message || JSON.stringify(json);
+      } catch {
+        serverMessage = await res.text();
+      }
+
+      const error: any = new Error(serverMessage || 'Error al actualizar la suscripción.');
+      error.status = res.status;
+      throw error;
+    }
+
+    const data = await res.json();
+    // El back devuelve { message: "Suscripción actualizada a Trial" }
+    const msg = data?.message || 'Suscripción actualizada correctamente.';
+
+    // 🔹 actualizamos el usuario en memoria y en localStorage
+    if (!this.usuario) {
+      this.usuario = {
+        UserId: 0,
+        FirstName: '',
+        LastName: '',
+        UserName: '',
+        token: token,
+        isAdmin: false,
+        subscriptionType: plan
+      };
+    } else {
+      this.usuario.subscriptionType = plan;
+    }
+
+    localStorage.setItem('subscriptionType', plan);
+
+    // 🔥 MUY IMPORTANTE: avisar que el plan cambió
+    this.notifySubscriptionChanged();
+
+    return msg;
+  }
+
+  // 🔹 Getter para que el Dashboard pueda mostrar el plan actual
+  getSubscriptionType(): 'Free' | 'Trial' | 'Pro' {
+    return (
+      this.usuario?.subscriptionType ||
+      (localStorage.getItem('subscriptionType') as 'Free' | 'Trial' | 'Pro' | null) ||
+      'Free'
+    );
+  }
+
+  // 🔥 LISTENER para avisar cambios de plan
+private subscriptionListeners: Array<() => void> = [];
+
+addSubscriptionChangeListener(fn: () => void) {
+  this.subscriptionListeners.push(fn);
+}
+
+private notifySubscriptionChanged() {
+  for (const fn of this.subscriptionListeners) {
+    try { fn(); }
+    catch (e) { console.error('Error al ejecutar listener:', e); }
+  }
+}
 }

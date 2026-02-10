@@ -5,4 +5,6 @@ export interface Usuario {
     UserName: string;
     token: string;
     isAdmin: boolean;
+    subscriptionType?: 'Free' | 'Trial' | 'Pro';
+
 }

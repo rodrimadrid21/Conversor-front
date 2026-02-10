@@ -1,26 +1,36 @@
 <main>
-    <h1>Planes de Suscripción</h1>
-    
-    <div class="container">
-        <div class="subscription">
-            <h2>Free</h2>
-            <p>Suscripción gratuita</p>
-            <p>Máximo 10 conversiones</p>
-            <button>Activar Free</button>
-        </div>
-        
-        <div class="subscription">
-            <h2>Trial</h2>
-            <p>Suscripción de prueba</p>
-            <p>Máximo 100 conversiones</p>
-            <button>Activar Trial</button>
-        </div>
-        
-        <div class="subscription">
-            <h2>Pro</h2>
-            <p>Suscripción completa</p>
-            <p>Sin límite de conversiones</p>
-            <button>Activar Pro</button>
-        </div>
+  <h1>Planes de Suscripción</h1>
+  
+  <div class="container">
+    <div class="subscription">
+      <h2>Free</h2>
+      <p>Suscripción gratuita</p>
+      <p>Máximo 10 conversiones</p>
+      <button (click)="activar('Free')" [disabled]="loading">
+        Activar Free
+      </button>
     </div>
+    
+    <div class="subscription">
+      <h2>Trial</h2>
+      <p>Suscripción de prueba</p>
+      <p>Máximo 100 conversiones</p>
+      <button (click)="activar('Trial')" [disabled]="loading">
+        Activar Trial
+      </button>
+    </div>
+    
+    <div class="subscription">
+      <h2>Pro</h2>
+      <p>Suscripción completa</p>
+      <p>Sin límite de conversiones</p>
+      <button (click)="activar('Pro')" [disabled]="loading">
+        Activar Pro
+      </button>
+    </div>
+  </div>
+
+  <p *ngIf="mensaje" class="mensaje">
+    {{ mensaje }}
+  </p>
 </main>
