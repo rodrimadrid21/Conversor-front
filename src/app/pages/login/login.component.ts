@@ -25,7 +25,7 @@ export class LoginComponent {
     const res = await this.authService.login(loginData);
 
     if (res && res.status === 'success') {
-        this.router.navigate(['/conversion']); // Navega a la página principal
+        this.router.navigate(['/dashboard/conversion']); // Navega a la página principal
     } else {
         this.errorLogin = true; // Muestra el mensaje de error
     }

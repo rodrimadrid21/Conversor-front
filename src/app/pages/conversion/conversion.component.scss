@@ -30,7 +30,7 @@ main {
   #trading-form {
     background-color: #1e2026;
     border-radius: 8px;
-    padding: 2rem;
+    padding: 2rem ;
     width: 100%;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
@@ -71,6 +71,7 @@ main {
     font-weight: bold;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    margin-bottom: 1rem;
   }
   
   button[type="submit"]:hover {
@@ -161,4 +162,34 @@ main {
 .alert-text {
   color: rgba(221, 221, 221, 0.674);
   white-space: pre-line;
+}
+
+/* ============================= */
+/* VALIDACIONES INLINE DEL FORM  */
+/* ============================= */
+
+.field-error {
+  margin-bottom: -1rem;
+  font-size: 0.85rem;
+  color: #ff7a7a;
+  opacity: 0.9;
+}
+
+/* Input inválido */
+input.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched {
+  border: 1px solid rgba(255, 80, 80, 0.6);
+  box-shadow: 0 0 0 1px rgba(255, 80, 80, 0.2);
+}
+
+/* Botón deshabilitado */
+button[type="submit"]:disabled {
+  background-color: #3a3f47;
+  color: #8a8a8a;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+button[type="submit"]:disabled:hover {
+  background-color: #3a3f47;
 }

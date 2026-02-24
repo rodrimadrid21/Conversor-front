@@ -12,11 +12,11 @@
         [(ngModel)]="conversionRequest.fromCurrency"
         required
       >
-        <option value="BTC">Bitcoin (BTC)</option>
-        <option value="ETH">Ethereum (ETH)</option>
-        <option value="USDT">Tether (USDT)</option>
-        <option value="ARS">Pesos Argentinos (ARS)</option>
-        <!-- Agrega más monedas según sea necesario -->
+        <option value="" disabled>Seleccioná una moneda</option>
+
+        <option *ngFor="let m of monedas" [value]="m.codigo">
+          {{ m.simbolo }} - {{ m.leyenda }} ({{ m.codigo }}) 
+</option>
       </select>
 
       <!-- Selección de moneda destino -->
@@ -27,11 +27,11 @@
         [(ngModel)]="conversionRequest.toCurrency"
         required
       >
-        <option value="BTC">Bitcoin (BTC)</option>
-        <option value="ETH">Ethereum (ETH)</option>
-        <option value="USDT">Tether (USDT)</option>
-        <option value="ARS">Pesos Argentinos (ARS)</option>
-        <!-- Agrega más monedas según sea necesario -->
+        <option value="" disabled>Seleccioná una moneda</option>
+
+        <option *ngFor="let m of monedas" [value]="m.codigo">
+          {{ m.simbolo }} - {{ m.leyenda }} ({{ m.codigo }}) 
+</option>
       </select>
 
       <!-- Cantidad a convertir -->
@@ -42,10 +42,24 @@
         type="number"
         [(ngModel)]="conversionRequest.amount"
         required
+        #amountCtrl="ngModel"
       />
 
       <!-- Botón para realizar la conversión -->
-      <button type="submit">Convertir</button>
+      <button type="submit">
+        Convertir
+      </button>
+
+      <div class="field-error"
+           *ngIf="conversionRequest.fromCurrency && conversionRequest.toCurrency
+               && conversionRequest.fromCurrency === conversionRequest.toCurrency">
+        Elegí dos monedas distintas.
+      </div>
+
+      <div class="field-error"
+           *ngIf="amountCtrl.touched && (amountCtrl.invalid || conversionRequest.amount <= 0)">
+        La cantidad debe ser mayor que 0.
+      </div>
     </form>
 
     <!-- Sección para mostrar resultados -->
@@ -80,10 +94,10 @@
 
     <!-- Mensaje de error -->
     <div *ngIf="errorMessage" class="alert alert-error">
-  <div class="alert-text">{{ errorMessage }}</div>
-  <a [routerLink]="['/suscripciones']" routerLinkActive="router-link-active" class="alert-action">Ver planes</a>
-</div>
-
-    
+      <div class="alert-text">{{ errorMessage }}</div>
+      <a [routerLink]="['/suscripciones']"
+         routerLinkActive="router-link-active"
+         class="alert-action">Ver planes</a>
+    </div>
   </div>
 </main>

@@ -7,7 +7,7 @@
         <button [disabled]="loginForm.invalid" type="submit">
             Iniciar sesión
         </button><!--linkeado con logincomponent.ts-->
-        <h4>¿No tienes una cuenta? <a [routerLink]="['/register']">Regístrate</a></h4>
+        <h4>¿No tenés una cuenta? <a [routerLink]="['/register']">Registráte</a></h4>
         @if(errorLogin){
             <p>Error en login</p>
         }

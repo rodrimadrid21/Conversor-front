@@ -1,202 +1,211 @@
 import { Injectable } from '@angular/core';
 import { Usuario } from '../interfaces/usuario';
 import { Login, ResLogin } from '../interfaces/login';
-import { environment } from '../../environment/environment.development';
 import { Register } from '../interfaces/register';
-import { Conversion } from "../interfaces/conversion";
+import { environment } from '../../environment/environment.development';
 
-@Injectable({
-  providedIn: 'root'
-})
+type Plan = 'Free' | 'Trial' | 'Pro';
+
+@Injectable({ providedIn: 'root' })
 export class DataAuthService {
+  private usuario?: Usuario;
 
-  usuario: Usuario | undefined;
+  // array de funciones
+  private listeners: (() => void)[] = [];
 
+  // agrega a la lista (callbacks = funciones que se pasan como argumento a otra fun)
+  onChange(callback: () => void) {
+    this.listeners.push(callback);
+  }
+
+  // dispara el cambio
+  private triggerChange() {
+    for (const listener of this.listeners) {
+      listener(); // variable que contiene una funccion === listener = () => { ... }
+    }
+  }
+  // constructor: ¿Ya había una sesión guardada en el navegador? *preg*
   constructor() {
-    const token = this.getToken();
-    const storedPlan = localStorage.getItem('subscriptionType') as 'Free' | 'Trial' | 'Pro' | null;
+    // “Hidratar” directo desde el constructor
+    const token = localStorage.getItem('jwtToken');
 
-    if (token) {
-      this.usuario = this.usuario || { 
+    if (!token) {
+      localStorage.removeItem('jwtToken');
+      localStorage.removeItem('subscriptionType');
+      this.usuario = undefined;
+      return;
+    }
+
+    const plan =
+      (localStorage.getItem('subscriptionType') as Plan | null) || 'Free'; // si no hay plan guardado, pongo Free
+
+    // *res* Reconstruye el objeto usuario en memoria usando: token + plan guardados
+    this.usuario = {
+      UserId: 0,
+      FirstName: '',
+      LastName: '',
+      UserName: '',
+      token,
+      isAdmin: false,
+      subscriptionType: plan,
+    };
+    // ejecuta listeners y carga(actualiza) el storage
+    this.triggerChange();
+  }
+
+  // ---------------------------
+  // Auth
+  // ---------------------------
+  async login(loginData: Login): Promise<ResLogin | null> {
+    // esta promesa va a devolver Reslogin o null
+    try {
+      const res = await fetch(`${environment.API_URL}Authentication/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginData),
+      });
+
+      if (!res.ok) //res.ok = 200 a 299
+      {
+        let msg = 'Error desconocido en login';
+        try {
+          const json = await res.json(); //esperamos
+          msg = json.message || json.mensaje || msg; //capturamos
+        } catch {}
+        throw new Error(msg);
+      }
+      const data: ResLogin = await res.json();
+
+      if (data.status !== 'success' || !data.token) {
+        throw new Error(data.mensaje || 'Autenticación fallida');
+      }
+
+      // guardo token
+      localStorage.setItem('jwtToken', data.token);
+
+      // crea usuario en memoria leyendo storage
+      const plan =
+        (localStorage.getItem('subscriptionType') as Plan | null) || 'Free';
+      this.usuario = {
         UserId: 0,
         FirstName: '',
         LastName: '',
         UserName: '',
-        token, 
+        token: data.token,
         isAdmin: false,
-        subscriptionType: storedPlan || 'Free' // 🔹 por defecto Free
- 
+        subscriptionType: plan,
       };
-    } else {
-      this.clearToken();
+      this.triggerChange();
+      return data;
+    } catch (e) {
+      console.error('Error en login:', e);
+      return null;
     }
   }
-
-  async login(loginData: Login): Promise<ResLogin | null> {
-  try {
-    const res = await fetch(`${environment.API_URL}Authentication/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(loginData),
-    });
-
-    if (!res.ok) {
-      // Manejo centralizado del error en lugar de lanzar console.error
-      const errorData = await res.json();
-      throw new Error(errorData.mensaje || 'Error desconocido en login');
-    }
-
-    const resJson: ResLogin = await res.json();
-    console.log('Respuesta del servidor:', resJson);  // Verifica el contenido de la respuesta
-
-    if (resJson.status !== 'success' || !resJson.token) {
-      throw new Error(resJson.mensaje || 'Autenticación fallida');
-    }
-
-    localStorage.setItem('jwtToken', resJson.token); // Guarda el token
-    console.log('Token guardado:', localStorage.getItem('jwtToken'));
-    // 🔹 al loguear, si no sabemos el plan aún, asumimos Free
-      if (!localStorage.getItem('subscriptionType')) {
-        localStorage.setItem('subscriptionType', 'Free');
-      }
-    return resJson;
-  } catch (error) {
-    console.error("Error en el servicio de login:", error);
-    return null;
-  }
-}
 
   async register(registerData: Register): Promise<boolean> {
     try {
       const res = await fetch(`${environment.API_URL}Usuario/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(registerData)
+        body: JSON.stringify(registerData),
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        console.error("Error en el registro:", errorData.mensaje);
+        console.error(
+          'Error en registro:',
+          errorData.message || 'Error en registro',
+        );
         return false;
       }
-
-      return true; // Registro exitoso
-    } catch (error) {
-      console.error("Error al conectarse con la API:", error);
+      return true;
+    } catch (e) {
+      console.error('Error al conectarse con la API:', e);
       return false;
     }
   }
 
-  setUsuario(usuario: Usuario) {
-    this.usuario = usuario;
+  // ---------------------------
+  // sesión
+  // ---------------------------
+  getToken(): string | null {
+    return localStorage.getItem('jwtToken');
   }
-
-  getUsuario(): Usuario | undefined {
-    return this.usuario;
-  }
-
-  getToken(){
-    return localStorage.getItem("jwtToken");
-  }
-
+  // logout- limpia sesion
   clearToken() {
-    localStorage.removeItem("jwtToken");
+    localStorage.removeItem('jwtToken');
     this.usuario = undefined;
+    this.triggerChange();
   }
 
-  // 🔹 NUEVO: activar plan Free/Trial/Pro
-  // =====================================
-  // plan puede ser 'Free' | 'Trial' | 'Pro'
-  async activarPlan(plan: 'Free' | 'Trial' | 'Pro'): Promise<string> {
+  // ---------------------------
+  // Plan
+  // ---------------------------
+  async activarPlan(plan: Plan): Promise<string> {
     const token = this.getToken();
-    if (!token) {
+    if (!token)
       throw new Error('Token no disponible. Iniciá sesión nuevamente.');
-    }
 
-    // Mapeo a tu enum del backend:
-    // 0 = Free, 1 = Trial, 2 = Pro
-    const typeValue =
-      plan === 'Free'  ? 0 :
-      plan === 'Trial' ? 1 :
-      2; // Pro
-
-    const body = {
-      id: 0,
-      type: typeValue,
-      conversionLimit: 0,
-      monthlyReset: true
-    };
+    const typeValue = plan === 'Free' ? 0 : plan === 'Trial' ? 1 : 2; //sino es ninguno es 2
 
     const res = await fetch(`${environment.API_URL}Usuario/activar-plan`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        type: typeValue,
+      }),
     });
 
     if (!res.ok) {
-      let serverMessage = '';
+      let msg = 'Error al actualizar la suscripción.';
+
       try {
         const json = await res.json();
-        serverMessage = json?.message || JSON.stringify(json);
-      } catch {
-        serverMessage = await res.text();
-      }
+        msg = json?.message || json?.mensaje || msg;
+      } catch {}
 
-      const error: any = new Error(serverMessage || 'Error al actualizar la suscripción.');
+      const error: any = new Error(msg);
       error.status = res.status;
       throw error;
     }
 
     const data = await res.json();
-    // El back devuelve { message: "Suscripción actualizada a Trial" }
     const msg = data?.message || 'Suscripción actualizada correctamente.';
 
-    // 🔹 actualizamos el usuario en memoria y en localStorage
+    // guardo plan en storage
+    localStorage.setItem('subscriptionType', plan);
+    // actualizo memoria
     if (!this.usuario) {
-      this.usuario = {
-        UserId: 0,
-        FirstName: '',
-        LastName: '',
-        UserName: '',
-        token: token,
-        isAdmin: false,
-        subscriptionType: plan
-      };
-    } else {
-      this.usuario.subscriptionType = plan;
+      throw new Error('Estado inválido: usuario no cargado en memoria.');
     }
 
-    localStorage.setItem('subscriptionType', plan);
+    this.usuario.subscriptionType = plan;
+    this.usuario.token = token;
 
-    // 🔥 MUY IMPORTANTE: avisar que el plan cambió
-    this.notifySubscriptionChanged();
-
+    this.triggerChange();
     return msg;
   }
 
-  // 🔹 Getter para que el Dashboard pueda mostrar el plan actual
-  getSubscriptionType(): 'Free' | 'Trial' | 'Pro' {
-    return (
-      this.usuario?.subscriptionType ||
-      (localStorage.getItem('subscriptionType') as 'Free' | 'Trial' | 'Pro' | null) ||
-      'Free'
-    );
-  }
+  async getLimitByPlan(plan: 'Free' | 'Trial' | 'Pro'): Promise<number | null> {
+  const token = this.getToken();
+  if (!token) return null;
 
-  // 🔥 LISTENER para avisar cambios de plan
-private subscriptionListeners: Array<() => void> = [];
+  const res = await fetch(`${environment.API_URL}Suscripcion/ByType/${plan}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
 
-addSubscriptionChangeListener(fn: () => void) {
-  this.subscriptionListeners.push(fn);
+  if (!res.ok) return null;
+
+  const json = await res.json();
+  return json.conversionLimit ?? null; // Devuelve conversionLimit si existe, si no null
 }
 
-private notifySubscriptionChanged() {
-  for (const fn of this.subscriptionListeners) {
-    try { fn(); }
-    catch (e) { console.error('Error al ejecutar listener:', e); }
+  getSubscriptionType(): Plan {
+    return this.usuario?.subscriptionType ?? 'Free';
   }
-}
+  
 }
