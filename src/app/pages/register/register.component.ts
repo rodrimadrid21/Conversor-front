@@ -9,32 +9,36 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [FormsModule,CommonModule],
+  imports: [FormsModule, CommonModule, RouterLink],
   templateUrl: './register.component.html',
-  styleUrl: './register.component.scss'
+  styleUrl: './register.component.scss',
 })
 export class RegisterComponent {
   errorRegister = false;
-  authService = inject(DataAuthService)
-  router = inject(Router)
 
-  async register(registerForm: NgForm) {
-    const { username, nombre, apellido, password } = registerForm.value;
-    const registerData: Register = { UserName: username, FirstName: nombre, LastName: apellido, Password: password };
+    private authService = inject(DataAuthService);
+    private router = inject(Router);
 
-    try {
-        const success = await this.authService.register(registerData);
+  async register(registerForm: NgForm): Promise<void> {
+    this.errorRegister = false;
 
-        if (success) {
-            this.router.navigate(['/login']).then(() => {
-                Swal.fire("Registro exitoso", "", "success");
-            });
-        } else {
-            this.errorRegister = true;
-        }
-    } catch (error) {
-        this.errorRegister = true;
-        console.error("Error en el registro:", error);
+    const { username, nombre, apellido, password } = registerForm.value; // son los name del html
+
+    const registerData: Register = {
+      UserName: username,
+      FirstName: nombre,
+      LastName: apellido,
+      Password: password,
+    };
+
+    const success = await this.authService.register(registerData);
+
+    if (success) {
+      await this.router.navigate(['/login']);
+      Swal.fire('Registro exitoso', '', 'success');
+      return;
     }
-}
+
+    this.errorRegister = true;
+  }
 }

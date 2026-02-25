@@ -13,22 +13,24 @@
     </thead>
 
     <tbody>
-      <!-- una fila por conversión -->
-      <tr *ngFor="let conversion of historial">
-        <!-- 'date' viene del back en formato ISO -->
-        <td>{{ conversion.date | date:'dd/MM/yyyy HH:mm' }}</td>
-        <td>{{ conversion.fromCurrency }}</td>
-        <td>{{ conversion.toCurrency }}</td>
-        <td>{{ conversion.amount }}</td>
-        <td>{{ conversion.result }}</td>
-      </tr>
-
-      <!-- mensaje si no hay datos -->
-      <tr *ngIf="historial.length === 0">
-        <td colspan="5" class="vacio">
-          No hay movimientos recientes.
-        </td>
-      </tr>
+      @if (historial.length > 0) {
+        @for (conversion of historial; track $index) {
+          <tr>
+            <!-- 'date' viene del back en formato ISO -->
+            <td>{{ conversion.date | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ conversion.fromCurrency }}</td>
+            <td>{{ conversion.toCurrency }}</td>
+            <td>{{ conversion.amount }}</td>
+            <td>{{ conversion.result }}</td>
+          </tr>
+        }
+      } @else {
+        <tr>
+          <td colspan="5" class="vacio">
+            No hay movimientos recientes.
+          </td>
+        </tr>
+      }
     </tbody>
   </table>
 </main>

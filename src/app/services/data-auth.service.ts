@@ -41,10 +41,6 @@ export class DataAuthService {
 
     // *res* Reconstruye el objeto usuario en memoria usando: token + plan guardados
     this.usuario = {
-      UserId: 0,
-      FirstName: '',
-      LastName: '',
-      UserName: '',
       token,
       isAdmin: false,
       subscriptionType: plan,
@@ -87,10 +83,6 @@ export class DataAuthService {
       const plan =
         (localStorage.getItem('subscriptionType') as Plan | null) || 'Free';
       this.usuario = {
-        UserId: 0,
-        FirstName: '',
-        LastName: '',
-        UserName: '',
         token: data.token,
         isAdmin: false,
         subscriptionType: plan,
@@ -191,21 +183,23 @@ export class DataAuthService {
   }
 
   async getLimitByPlan(plan: 'Free' | 'Trial' | 'Pro'): Promise<number | null> {
-  const token = this.getToken();
-  if (!token) return null;
+    const token = this.getToken();
+    if (!token) return null;
 
-  const res = await fetch(`${environment.API_URL}Suscripcion/ByType/${plan}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+    const res = await fetch(
+      `${environment.API_URL}Suscripcion/ByType/${plan}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
 
-  if (!res.ok) return null;
+    if (!res.ok) return null;
 
-  const json = await res.json();
-  return json.conversionLimit ?? null; // Devuelve conversionLimit si existe, si no null
-}
+    const json = await res.json();
+    return json.conversionLimit ?? null; // Devuelve conversionLimit si existe, si no null
+  }
 
   getSubscriptionType(): Plan {
     return this.usuario?.subscriptionType ?? 'Free';
   }
-  
 }

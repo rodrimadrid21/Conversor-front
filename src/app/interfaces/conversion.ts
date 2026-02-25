@@ -1,5 +1,3 @@
-import { Moneda } from "./moneda";
-
 export interface Conversion {
   conversionId: number;
   usuarioId: number;
@@ -8,6 +6,6 @@ export interface Conversion {
   fromCurrencySymbol?: string;
   toCurrencySymbol?: string;
   amount: number;
-  result?: number;
+  result: number;
   date?: string;
 }

@@ -2,13 +2,20 @@
     <form #registerForm="ngForm" (ngSubmit)="register(registerForm)">
         <h1>CryptoXchange</h1>
         <h2>Registráte :)</h2>
+
         <input type="text" id="username" placeholder="Usuario" name="username" ngModel required>
         <input type="text" id="name" placeholder="Nombre" name="nombre" ngModel required>
         <input type="text" id="lastname" placeholder="Apellido" name="apellido" ngModel required>
         <input type="password" id="password" placeholder="Contraseña" name="password" ngModel required>
-        <button [disabled]="registerForm.invalid" class="boton-resaltado" type="submit">Registrarse</button>
+
+        <button [disabled]="registerForm.invalid" class="boton-resaltado" type="submit">
+            Registrarse
+        </button>
+
+        <h4>¿Ya tenés cuenta? <a routerLink="/login">Iniciá sesión</a></h4>
+
+        @if (errorRegister) {
+            <p>Error al registrarse</p>
+        }
     </form>
-    @if(errorRegister) {
-        <h3 id="error">Error de register</h3>
-    }
 </main>

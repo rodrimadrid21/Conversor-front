@@ -3,22 +3,14 @@ import { environment } from '../../environment/environment.development';
 import { DataAuthService } from './data-auth.service';
 import { Moneda } from '../interfaces/moneda';
 
-type MonedaDto = {
-  currencyId: number;
-  code: string;
-  legend: string;
-  symbol: string;
-  convertibilityIndex: number;
-};
-
 @Injectable({ providedIn: 'root' })
 export class DataMonedaService {
-  constructor(private authService: DataAuthService) {}
+  constructor(private authService: DataAuthService) {} // inyecto el servicio de auth para usar el token en las peticiones
 
   // =========================
   // GET /api/Moneda/All
   // =========================
-  async getMonedas(): Promise<
+  async getMonedas(): Promise< // respuesta exitosa o error
     | { ok: true; data: Moneda[] }
     | { ok: false; status: number; message: string }
   > {
@@ -33,17 +25,13 @@ export class DataMonedaService {
     });
 
     if (res.ok) {
-      const dto: MonedaDto[] = await res.json();
+      const dto = (await res.json()) as any[]; // recibe el dto de moneda del back
 
-      // 🔥 DEBUG útil (1 sola vez, después lo podés sacar)
-      console.table(dto);
-
-      const data: Moneda[] = dto.map(m => ({
+      const data: Moneda[] = dto.map((m) => ({
         id: m.currencyId,
         codigo: m.code,
         leyenda: m.legend,
         simbolo: m.symbol,
-        eliminada: false,
         indiceConvertibilidad: m.convertibilityIndex,
       }));
 
@@ -52,8 +40,8 @@ export class DataMonedaService {
 
     let msg = 'Error al obtener monedas';
     try {
-      const json = await res.json();
-      msg = json?.message ?? json?.mensaje ?? json?.Message ?? JSON.stringify(json);
+      const json = await res.json();// intentamos leer el error json
+      msg = json?.message ?? json?.Message ?? JSON.stringify(json);
     } catch {
       msg = await res.text();
     }

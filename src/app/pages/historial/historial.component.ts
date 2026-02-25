@@ -33,11 +33,12 @@ export class HistorialComponent implements OnInit {
         return;
       }
 
+      // Ordenar por fecha descendente y limitar a las últimas 10 conversiones
       this.historial = res.data.sort((a, b) => {
         const timeA = a.date ? new Date(a.date).getTime() : 0;
         const timeB = b.date ? new Date(b.date).getTime() : 0;
         return timeB - timeA;
-      }).slice(0, 15);
+      }).slice(0, 10);
 
       console.table(this.historial);
     } catch (error: any) {

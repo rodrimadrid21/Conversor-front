@@ -2,39 +2,34 @@
   <h1>Conversión de Criptomonedas</h1>
 
   <div class="container">
-    <!-- Formulario de conversión -->
+
     <form (ngSubmit)="performConversion($event)" id="trading-form">
-      <!-- Selección de moneda origen -->
+      
       <label for="from-currency">Moneda origen:</label>
-      <select
-        id="from-currency"
-        name="from-currency"
-        [(ngModel)]="conversionRequest.fromCurrency"
-        required
-      >
+      <select id="from-currency" name="from-currency"0
+       [(ngModel)]="conversionRequest.fromCurrency" required >
+        
         <option value="" disabled>Seleccioná una moneda</option>
-
-        <option *ngFor="let m of monedas" [value]="m.codigo">
-          {{ m.simbolo }} - {{ m.leyenda }} ({{ m.codigo }}) 
-</option>
+        @for (m of monedas; track m.codigo) {
+          <option [value]="m.codigo">
+            {{ m.simbolo }} - {{ m.leyenda }} ({{ m.codigo }})
+          </option>
+        }
       </select>
 
-      <!-- Selección de moneda destino -->
       <label for="to-currency">Moneda destino:</label>
-      <select
-        id="to-currency"
-        name="to-currency"
-        [(ngModel)]="conversionRequest.toCurrency"
-        required
-      >
+      <select id="to-currency" name="to-currency" 
+      [(ngModel)]="conversionRequest.toCurrency" required >
+        
         <option value="" disabled>Seleccioná una moneda</option>
-
-        <option *ngFor="let m of monedas" [value]="m.codigo">
-          {{ m.simbolo }} - {{ m.leyenda }} ({{ m.codigo }}) 
-</option>
+        @for (m of monedas; track m.codigo) {
+          <option [value]="m.codigo">
+            {{ m.simbolo }} - {{ m.leyenda }} ({{ m.codigo }})
+          </option>
+        }
       </select>
 
-      <!-- Cantidad a convertir -->
+      <!-- Cantidad -->
       <label for="amount">Cantidad:</label>
       <input
         id="amount"
@@ -43,61 +38,78 @@
         [(ngModel)]="conversionRequest.amount"
         required
         #amountCtrl="ngModel"
-      />
+        step="any" /><!-- decimales -->
 
-      <!-- Botón para realizar la conversión -->
-      <button type="submit">
+      <button
+        type="submit"
+        [disabled]="
+          !conversionRequest.fromCurrency ||
+          !conversionRequest.toCurrency ||
+          conversionRequest.fromCurrency === conversionRequest.toCurrency ||
+          !conversionRequest.amount ||
+          conversionRequest.amount <= 0
+        "
+      >
         Convertir
       </button>
 
-      <div class="field-error"
-           *ngIf="conversionRequest.fromCurrency && conversionRequest.toCurrency
-               && conversionRequest.fromCurrency === conversionRequest.toCurrency">
-        Elegí dos monedas distintas.
-      </div>
+      @if (
+        conversionRequest.fromCurrency &&
+        conversionRequest.toCurrency &&
+        conversionRequest.fromCurrency === conversionRequest.toCurrency
+      ) {
+        <div class="field-error">
+          Elegí dos monedas distintas.
+        </div>
+      }
 
-      <div class="field-error"
-           *ngIf="amountCtrl.touched && (amountCtrl.invalid || conversionRequest.amount <= 0)">
-        La cantidad debe ser mayor que 0.
-      </div>
+      @if (amountCtrl.touched && conversionRequest.amount <= 0) {
+        <div class="field-error">
+          La cantidad debe ser mayor que 0.
+        </div>
+      }
     </form>
 
-    <!-- Sección para mostrar resultados -->
-    <div class="result" *ngIf="conversionResult">
-      <h2>Resultado de la Conversión</h2>
+    <!-- Resultado -->
+    @if (conversionResult) {
+      <div class="result">
+        <h2>Resultado de la Conversión</h2>
 
-      <div class="data">
-        <p><strong>De:</strong> {{ conversionResult.fromCurrency }}</p>
-        <p><strong>A:</strong> {{ conversionResult.toCurrency }}</p>
+        <div class="data">
+          <p><strong>De:</strong> {{ conversionResult.fromCurrency }}</p>
+          <p><strong>A:</strong> {{ conversionResult.toCurrency }}</p>
+        </div>
+
+        <div class="data">
+          <p>
+            <strong>Cantidad Original:</strong>
+            {{ conversionResult.fromCurrencySymbol }}
+            {{ conversionResult.amount }}
+          </p>
+          <p>
+            <strong>Resultado:</strong>
+            {{ conversionResult.toCurrencySymbol }}
+            {{ conversionResult.result }}
+          </p>
+        </div>
+
+        <div class="data">
+          <p>
+            <strong>Fecha:</strong>
+            {{ conversionResult.date | date: 'dd/MM/yyyy' }}
+          </p>
+        </div>
       </div>
+    }
 
-      <div class="data">
-        <p>
-          <strong>Cantidad Original:</strong>
-          {{ conversionResult.fromCurrencySymbol }}
-          {{ conversionResult.amount }}
-        </p>
-        <p>
-          <strong>Resultado:</strong>
-          {{ conversionResult.toCurrencySymbol }}
-          {{ conversionResult.result }}
-        </p>
+    @if (errorMessage) {
+      <div class="alert">
+        <div class="alert-text">{{ errorMessage }}</div>
+        <a routerLink="/suscripciones" routerLinkActive="router-link-active" class="alert-action"
+        >
+          Ver planes
+        </a>
       </div>
-
-      <div class="data">
-        <p>
-          <strong>Fecha:</strong>
-          {{ conversionResult.date | date: 'dd/MM/yyyy' }}
-        </p>
-      </div>
-    </div>
-
-    <!-- Mensaje de error -->
-    <div *ngIf="errorMessage" class="alert alert-error">
-      <div class="alert-text">{{ errorMessage }}</div>
-      <a [routerLink]="['/suscripciones']"
-         routerLinkActive="router-link-active"
-         class="alert-action">Ver planes</a>
-    </div>
+    }
   </div>
 </main>

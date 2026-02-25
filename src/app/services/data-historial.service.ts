@@ -34,7 +34,7 @@ export class DataHistorialService {
     let msg = 'Error al obtener el historial';
     try {
       const json = await res.json();
-      msg = json?.message ?? json?.mensaje ?? json?.Message ?? JSON.stringify(json);
+      msg = json?.message ?? json?.Message ?? JSON.stringify(json);
     } catch {
       msg = await res.text();
     }

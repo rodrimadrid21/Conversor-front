@@ -1,35 +1,30 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DataAuthService } from '../../services/data-auth.service';
+
+type Plan = 'Free' | 'Trial' | 'Pro';
 
 @Component({
   selector: 'app-suscripciones',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './suscripciones.component.html',
-  styleUrls: ['./suscripciones.component.scss']
+  styleUrls: ['./suscripciones.component.scss'],
 })
 export class SuscripcionesComponent {
+  mensaje = '';
+  loading = false;
 
-  mensaje: string = '';
-  loading: boolean = false;
+  private authService = inject(DataAuthService);
 
-  constructor(private authService: DataAuthService) {}
-
-  async activar(plan: 'Free' | 'Trial' | 'Pro'): Promise<void> {
+  async activar(plan: Plan): Promise<void> {
     this.mensaje = '';
     this.loading = true;
 
     try {
-      const msg = await this.authService.activarPlan(plan);
-      this.mensaje = msg; // "Suscripción actualizada a Trial"
+      this.mensaje = await this.authService.activarPlan(plan);
     } catch (error: any) {
-      console.error('Error al activar plan:', error);
-      if (error.status === 401) {
-        this.mensaje = 'Sesión expirada o inválida. Iniciá sesión nuevamente.';
-      } else {
-        this.mensaje = error.message || 'Error al actualizar la suscripción.';
-      }
+      this.mensaje = error?.message ?? 'Error inesperado.';
     } finally {
       this.loading = false;
     }

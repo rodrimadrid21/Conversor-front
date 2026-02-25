@@ -1,7 +1,6 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { DataConversionService } from '../../services/data-conversion.service';
@@ -11,6 +10,8 @@ import { DataMonedaService } from '../../services/data-moneda.service';
 import { Conversion } from '../../interfaces/conversion';
 import { Moneda } from '../../interfaces/moneda';
 
+type Plan = 'Free' | 'Trial' | 'Pro';
+
 @Component({
   selector: 'app-conversion',
   standalone: true,
@@ -19,36 +20,21 @@ import { Moneda } from '../../interfaces/moneda';
   styleUrls: ['./conversion.component.scss'],
 })
 export class ConversionComponent implements OnInit {
-  // Dropdown data
   monedas: Moneda[] = [];
 
-  // Form model
-  conversionRequest: Conversion = {
-    conversionId: 0,
-    usuarioId: 0, // si el back lo toma del JWT, puede quedar 0 y listo
-    fromCurrency: '',
-    toCurrency: '',
-    amount: 0,
-    fromCurrencySymbol: undefined,
-    toCurrencySymbol: undefined,
-    result: 0,
-    date: undefined,
-  };
+  conversionRequest: Conversion = this.createEmptyRequest(); // para no repetir código, esto se resetea cada vez que se hace una conversión
 
   conversionResult: any = null;
   errorMessage = '';
-
-  plan: 'Free' | 'Trial' | 'Pro' = 'Free';
+  plan: Plan = 'Free';
 
   private conversionService = inject(DataConversionService);
   private monedaService = inject(DataMonedaService);
   private authService = inject(DataAuthService);
-  private cdr = inject(ChangeDetectorRef);
-
+  
   async ngOnInit(): Promise<void> {
     this.plan = this.authService.getSubscriptionType();
     await this.cargarMonedas();
-    this.cdr.detectChanges();
   }
 
   // =========================
@@ -61,26 +47,17 @@ export class ConversionComponent implements OnInit {
       const res = await this.monedaService.getMonedas();
 
       if (!res.ok) {
-        this.errorMessage = res.message || 'No se pudo cargar el listado de monedas.';
+        this.errorMessage =
+          res.message || 'No se pudo cargar el listado de monedas.';
         this.monedas = [];
         return;
       }
 
-      this.monedas = res.data;
-
-      // Defaults: si no hay selección, ponemos la primera y segunda moneda
-      if (!this.conversionRequest.fromCurrency && this.monedas.length > 0) {
-        this.conversionRequest.fromCurrency = this.monedas[0].codigo;
-      }
-      if (!this.conversionRequest.toCurrency && this.monedas.length > 1) {
-        this.conversionRequest.toCurrency = this.monedas[1].codigo;
-      }
-
-      // Debug útil (podés borrarlo después)
-      console.table(this.monedas);
-    } catch (e: any) {
-      console.error('Error al cargar monedas:', e);
-      this.errorMessage = e?.message || 'Error inesperado al cargar monedas.';
+      this.monedas = res.data; // se cargan las monedas
+    } catch (error: any) {
+      console.error('Error al cargar monedas:', error);
+      this.errorMessage =
+        error?.message || 'Error inesperado al cargar monedas.';
       this.monedas = [];
     }
   }
@@ -89,17 +66,23 @@ export class ConversionComponent implements OnInit {
   // Submit Convertir
   // =========================
   async performConversion(event: Event): Promise<void> {
-    event.preventDefault();
+    event.preventDefault(); // para que no se recargue la página
 
     this.errorMessage = '';
     this.conversionResult = null;
 
     // Validaciones mínimas (UX)
-    if (!this.conversionRequest.fromCurrency || !this.conversionRequest.toCurrency) {
+    if (
+      !this.conversionRequest.fromCurrency ||
+      !this.conversionRequest.toCurrency
+    ) // si no seleccionó alguna moneda
+    {
       this.errorMessage = 'Seleccioná moneda origen y destino.';
       return;
     }
-    if (this.conversionRequest.fromCurrency === this.conversionRequest.toCurrency) {
+    if (
+      this.conversionRequest.fromCurrency === this.conversionRequest.toCurrency
+    ) {
       this.errorMessage = 'Elegí dos monedas distintas.';
       return;
     }
@@ -109,42 +92,42 @@ export class ConversionComponent implements OnInit {
     }
 
     // Fecha
-    this.conversionRequest.date = new Date().toISOString();
+    this.conversionRequest.date = new Date().toISOString(); //obtiene la fecha y la pasa a string
 
-    // Símbolos reales (mejor que repetir el código)
-    const from = this.monedas.find(m => m.codigo === this.conversionRequest.fromCurrency);
-    const to = this.monedas.find(m => m.codigo === this.conversionRequest.toCurrency);
+    // Busca en el array monedas el objeto cuya propiedad codigo sea igual a fromCurrency
+    const from = this.monedas.find(
+      (m) => m.codigo === this.conversionRequest.fromCurrency,
+    );
+    const to = this.monedas.find(
+      (m) => m.codigo === this.conversionRequest.toCurrency,
+    );
 
-    this.conversionRequest.fromCurrencySymbol = from?.simbolo ?? this.conversionRequest.fromCurrency;
-    this.conversionRequest.toCurrencySymbol = to?.simbolo ?? this.conversionRequest.toCurrency;
-
-    // El back calcula el result
+    // El back calcula el result - no puede ser undefined
     this.conversionRequest.result = 0;
     this.conversionRequest.conversionId = 0;
 
-    try {
-      const result = await this.conversionService.performConversion(this.conversionRequest);
-
-      if (result.ok) {
-        const response = result.data;
-        this.conversionResult = response.conversion ?? response.Conversion ?? response;
-      } else {
-        if (result.status === 400) {
-          this.errorMessage = result.message || 'Revisá los datos enviados.';
-        } else if (result.status === 403) {
-          this.errorMessage = result.message || 'Alcanzaste el límite de conversiones de tu plan.';
-        } else if (result.status === 401) {
-          this.errorMessage = 'Sesión inválida o expirada. Iniciá sesión de nuevo.';
-        } else {
-          this.errorMessage = result.message || 'Error inesperado al realizar la conversión.';
-        }
-      }
-
-      this.cdr.detectChanges();
-    } catch (error: any) {
-      console.error('Error en performConversion (componente):', error);
-      this.errorMessage = error?.message || 'Error inesperado.';
-      this.cdr.detectChanges();
+    // llamamos al service y le pasamos el obj con los datos de la conversión
+    const result = await this.conversionService.executeConversion(
+      this.conversionRequest,
+    );
+    if (result.ok) {
+      this.conversionResult = result.data.conversion;
+    } else {
+      this.errorMessage = result.message;
     }
+  }
+
+  private createEmptyRequest(): Conversion {
+    return {
+      conversionId: 0,
+      usuarioId: 0,
+      fromCurrency: '',
+      toCurrency: '',
+      amount: 0,
+      fromCurrencySymbol: undefined,
+      toCurrencySymbol: undefined,
+      result: 0,
+      date: undefined,
+    };
   }
 }

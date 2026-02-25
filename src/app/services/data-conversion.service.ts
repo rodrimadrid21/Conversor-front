@@ -10,9 +10,11 @@ export class DataConversionService {
   // =========================
   // POST /api/Conversion
   // =========================
-  async performConversion(conversionRequest: Conversion): Promise<
-    | { ok: true; data: any }
-    | { ok: false; status: number; message: string }
+  async executeConversion(
+    conversionRequest: Conversion,
+  ): Promise<
+     | { ok: true; data: any } 
+     | { ok: false; status: number; message: string }
   > {
     const token = this.authService.getToken();
 
@@ -31,25 +33,19 @@ export class DataConversionService {
 
     // ✅ OK
     if (res.ok) {
-      const data = await res.json();
+      const data: Conversion = await res.json();
       return { ok: true, data };
     }
 
-    // ❌ NOT OK -> mensaje prolijo (json o texto)
+    // let porqwue puede tener el valor del try o del catch o los otros
     let msg = 'Error en la conversión';
-    try {
-      const json = await res.json();
-      msg = json?.message ?? json?.mensaje ?? json?.Message ?? JSON.stringify(json);
-    } catch {
-      msg = await res.text();
-    }
+try {
+  const json = await res.json();
+  msg = json?.message ?? msg;
+} catch {
+  msg = (await res.text()) || msg;
+}
 
-    // ✅ Errores esperables
-    if (res.status === 400 || res.status === 401 || res.status === 403) {
-      return { ok: false, status: res.status, message: msg };
-    }
-
-    // ❌ Errores inesperables (500, etc.)
-    throw new Error(`Error HTTP: ${res.status} - ${msg}`);
+    return { ok: false, status: res.status, message: msg };
   }
 }
