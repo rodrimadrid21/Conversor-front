@@ -13,7 +13,7 @@ export class DataAuthService {
   // array de funciones
   private listeners: (() => void)[] = [];
 
-  // agrega a la lista (callbacks = funciones que se pasan como argumento a otra fun)
+  // agrega a la lista
   onChange(callback: () => void) {
     this.listeners.push(callback);
   }
@@ -21,12 +21,11 @@ export class DataAuthService {
   // dispara el cambio
   private triggerChange() {
     for (const listener of this.listeners) {
-      listener(); // variable que contiene una funccion === listener = () => { ... }
+      listener();
     }
   }
-  // constructor: ¿Ya había una sesión guardada en el navegador? *preg*
+
   constructor() {
-    // “Hidratar” directo desde el constructor
     const token = localStorage.getItem('jwtToken');
 
     if (!token) {
@@ -37,9 +36,8 @@ export class DataAuthService {
     }
 
     const plan =
-      (localStorage.getItem('subscriptionType') as Plan | null) || 'Free'; // si no hay plan guardado, pongo Free
+      (localStorage.getItem('subscriptionType') as Plan | null) || 'Free';
 
-    // *res* Reconstruye el objeto usuario en memoria usando: token + plan guardados
     this.usuario = {
       token,
       isAdmin: false,
@@ -49,11 +47,8 @@ export class DataAuthService {
     this.triggerChange();
   }
 
-  // ---------------------------
   // Auth
-  // ---------------------------
   async login(loginData: Login): Promise<ResLogin | null> {
-    // esta promesa va a devolver Reslogin o null
     try {
       const res = await fetch(`${environment.API_URL}Authentication/login`, {
         method: 'POST',
@@ -61,12 +56,11 @@ export class DataAuthService {
         body: JSON.stringify(loginData),
       });
 
-      if (!res.ok) //res.ok = 200 a 299
-      {
+      if (!res.ok) {
         let msg = 'Error desconocido en login';
         try {
-          const json = await res.json(); //esperamos
-          msg = json.message || json.mensaje || msg; //capturamos
+          const json = await res.json();
+          msg = json.message || json.mensaje || msg;
         } catch {}
         throw new Error(msg);
       }
@@ -76,17 +70,17 @@ export class DataAuthService {
         throw new Error(data.mensaje || 'Autenticación fallida');
       }
 
-      // guardo token
+      // guarda token
       localStorage.setItem('jwtToken', data.token);
 
       // crea usuario en memoria leyendo storage
-      const plan =
-        (localStorage.getItem('subscriptionType') as Plan | null) || 'Free';
-      this.usuario = {
+      const plan = (this.usuario = {
         token: data.token,
         isAdmin: false,
-        subscriptionType: plan,
-      };
+        subscriptionType:
+          (localStorage.getItem('subscriptionType') as Plan | null) || 'Free',
+      });
+      console.log(this.usuario.subscriptionType);
       this.triggerChange();
       return data;
     } catch (e) {
@@ -118,28 +112,24 @@ export class DataAuthService {
     }
   }
 
-  // ---------------------------
-  // sesión
-  // ---------------------------
   getToken(): string | null {
     return localStorage.getItem('jwtToken');
   }
   // logout- limpia sesion
   clearToken() {
     localStorage.removeItem('jwtToken');
+    localStorage.removeItem('subscriptionType');
     this.usuario = undefined;
     this.triggerChange();
   }
 
-  // ---------------------------
   // Plan
-  // ---------------------------
   async activarPlan(plan: Plan): Promise<string> {
     const token = this.getToken();
     if (!token)
       throw new Error('Token no disponible. Iniciá sesión nuevamente.');
 
-    const typeValue = plan === 'Free' ? 0 : plan === 'Trial' ? 1 : 2; //sino es ninguno es 2
+    const typeValue = plan === 'Free' ? 0 : plan === 'Trial' ? 1 : 2;
 
     const res = await fetch(`${environment.API_URL}Usuario/activar-plan`, {
       method: 'POST',
@@ -170,7 +160,7 @@ export class DataAuthService {
 
     // guardo plan en storage
     localStorage.setItem('subscriptionType', plan);
-    // actualizo memoria
+
     if (!this.usuario) {
       throw new Error('Estado inválido: usuario no cargado en memoria.');
     }
@@ -196,10 +186,11 @@ export class DataAuthService {
     if (!res.ok) return null;
 
     const json = await res.json();
-    return json.conversionLimit ?? null; // Devuelve conversionLimit si existe, si no null
+    return json.conversionLimit ?? null;
   }
 
   getSubscriptionType(): Plan {
+    console.log(this.usuario);
     return this.usuario?.subscriptionType ?? 'Free';
   }
 }

@@ -5,12 +5,10 @@ import { Moneda } from '../interfaces/moneda';
 
 @Injectable({ providedIn: 'root' })
 export class DataMonedaService {
-  constructor(private authService: DataAuthService) {} // inyecto el servicio de auth para usar el token en las peticiones
+  constructor(private authService: DataAuthService) {} 
 
-  // =========================
   // GET /api/Moneda/All
-  // =========================
-  async getMonedas(): Promise< // respuesta exitosa o error
+  async getMonedas(): Promise< 
     | { ok: true; data: Moneda[] }
     | { ok: false; status: number; message: string }
   > {
@@ -25,7 +23,7 @@ export class DataMonedaService {
     });
 
     if (res.ok) {
-      const dto = (await res.json()) as any[]; // recibe el dto de moneda del back
+      const dto = (await res.json()) as any[]; 
 
       const data: Moneda[] = dto.map((m) => ({
         id: m.currencyId,
@@ -40,7 +38,7 @@ export class DataMonedaService {
 
     let msg = 'Error al obtener monedas';
     try {
-      const json = await res.json();// intentamos leer el error json
+      const json = await res.json();
       msg = json?.message ?? json?.Message ?? JSON.stringify(json);
     } catch {
       msg = await res.text();

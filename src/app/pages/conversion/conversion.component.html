@@ -23,9 +23,15 @@
         
         <option value="" disabled>Seleccioná una moneda</option>
         @for (m of monedas; track m.codigo) {
-          <option [value]="m.codigo">
+          @if (conversionRequest.fromCurrency === m.codigo) {
+            <option [value]="m.codigo" disabled>{{ m.simbolo }} - {{ m.leyenda }} {{ m.codigo }}</option>
+          }
+          @else {
+            <option [value]="m.codigo">
             {{ m.simbolo }} - {{ m.leyenda }} ({{ m.codigo }})
           </option>
+          }
+          
         }
       </select>
 

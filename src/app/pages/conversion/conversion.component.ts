@@ -22,7 +22,7 @@ type Plan = 'Free' | 'Trial' | 'Pro';
 export class ConversionComponent implements OnInit {
   monedas: Moneda[] = [];
 
-  conversionRequest: Conversion = this.createEmptyRequest(); // para no repetir código, esto se resetea cada vez que se hace una conversión
+  conversionRequest: Conversion = this.createEmptyRequest();
 
   conversionResult: any = null;
   errorMessage = '';
@@ -31,15 +31,12 @@ export class ConversionComponent implements OnInit {
   private conversionService = inject(DataConversionService);
   private monedaService = inject(DataMonedaService);
   private authService = inject(DataAuthService);
-  
+
   async ngOnInit(): Promise<void> {
     this.plan = this.authService.getSubscriptionType();
     await this.cargarMonedas();
   }
 
-  // =========================
-  // Cargar Monedas
-  // =========================
   private async cargarMonedas(): Promise<void> {
     this.errorMessage = '';
 
@@ -53,7 +50,7 @@ export class ConversionComponent implements OnInit {
         return;
       }
 
-      this.monedas = res.data; // se cargan las monedas
+      this.monedas = res.data; //ok
     } catch (error: any) {
       console.error('Error al cargar monedas:', error);
       this.errorMessage =
@@ -62,21 +59,16 @@ export class ConversionComponent implements OnInit {
     }
   }
 
-  // =========================
-  // Submit Convertir
-  // =========================
   async performConversion(event: Event): Promise<void> {
-    event.preventDefault(); // para que no se recargue la página
+    event.preventDefault(); //evita recargar la pag
 
     this.errorMessage = '';
     this.conversionResult = null;
 
-    // Validaciones mínimas (UX)
     if (
       !this.conversionRequest.fromCurrency ||
       !this.conversionRequest.toCurrency
-    ) // si no seleccionó alguna moneda
-    {
+    ) {
       this.errorMessage = 'Seleccioná moneda origen y destino.';
       return;
     }
@@ -91,25 +83,22 @@ export class ConversionComponent implements OnInit {
       return;
     }
 
-    // Fecha
-    this.conversionRequest.date = new Date().toISOString(); //obtiene la fecha y la pasa a string
+    this.conversionRequest.date = new Date().toISOString();
 
     // Busca en el array monedas el objeto cuya propiedad codigo sea igual a fromCurrency
     const from = this.monedas.find(
-      (m) => m.codigo === this.conversionRequest.fromCurrency,
+      (m) => m.codigo === this.conversionRequest.fromCurrency
     );
     const to = this.monedas.find(
-      (m) => m.codigo === this.conversionRequest.toCurrency,
+      (m) => m.codigo === this.conversionRequest.toCurrency
     );
 
-    // El back calcula el result - no puede ser undefined
+    // seteamos en 0
     this.conversionRequest.result = 0;
     this.conversionRequest.conversionId = 0;
 
     // llamamos al service y le pasamos el obj con los datos de la conversión
-    const result = await this.conversionService.executeConversion(
-      this.conversionRequest,
-    );
+    const result = await this.conversionService.executeConversion(this.conversionRequest);
     if (result.ok) {
       this.conversionResult = result.data.conversion;
     } else {

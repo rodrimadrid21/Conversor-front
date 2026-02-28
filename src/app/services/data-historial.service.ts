@@ -7,9 +7,7 @@ import { DataAuthService } from './data-auth.service';
 export class DataHistorialService {
   constructor(private authService: DataAuthService) {}
 
-  // =========================
   // GET /api/Conversion/History
-  // =========================
   async getHistorial(): Promise<
     | { ok: true; data: Conversion[] }
     | { ok: false; status: number; message: string }

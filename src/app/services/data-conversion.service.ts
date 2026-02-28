@@ -7,14 +7,11 @@ import { DataAuthService } from './data-auth.service';
 export class DataConversionService {
   constructor(private authService: DataAuthService) {}
 
-  // =========================
   // POST /api/Conversion
-  // =========================
   async executeConversion(
-    conversionRequest: Conversion,
+    conversionRequest: Conversion
   ): Promise<
-     | { ok: true; data: any } 
-     | { ok: false; status: number; message: string }
+    { ok: true; data: any } | { ok: false; status: number; message: string }
   > {
     const token = this.authService.getToken();
 
@@ -31,20 +28,18 @@ export class DataConversionService {
       body: JSON.stringify(conversionRequest),
     });
 
-    // ✅ OK
     if (res.ok) {
       const data: Conversion = await res.json();
       return { ok: true, data };
     }
 
-    // let porqwue puede tener el valor del try o del catch o los otros
     let msg = 'Error en la conversión';
-try {
-  const json = await res.json();
-  msg = json?.message ?? msg;
-} catch {
-  msg = (await res.text()) || msg;
-}
+    try {
+      const json = await res.json();
+      msg = json?.message ?? msg;
+    } catch {
+      msg = (await res.text()) || msg;
+    }
 
     return { ok: false, status: res.status, message: msg };
   }
